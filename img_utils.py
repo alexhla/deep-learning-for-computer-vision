@@ -1,3 +1,7 @@
+# Dependency Installation (Linux):
+# $ sudo apt install python3-numpy
+# $ pip3 install argparse opencv-python opencv-contrib-python
+
 import os
 import argparse
 import cv2
@@ -7,27 +11,30 @@ import matplotlib.pyplot as plt
 # instantiate the argument parser object
 ap = argparse.ArgumentParser()
 # Add the arguments to the parser
-ap.add_argument("-d", "--directory", required=True, help="The directory containing images of concern")
-ap.add_argument("-c", "--command", required=True, help="The operation to be done on the directory of concern")
+ap.add_argument('-d', '--directory', required=True, help='directory of images')
+ap.add_argument('-i', '--info', action='store_true', help='scan images and return info')
+ap.add_argument('-dd', '--delete_duplicates', action='store_true', help='find and delete duplicate images')
+ap.add_argument('-r256x256', '--resize256x256', help='resize images to 256x256 maintaining aspect ratio')
+
 args = vars(ap.parse_args())
-# print(args)
+files = os.listdir(args['directory'])
 
-available_commands = ['get_info', 'find_duplicate_images']
-if args['command'] not in available_commands:
-	print(f'\nError: Command \"{args["command"]}\" Not Found\n')
+print(f'argparse arguments: {args}')
+print(f'number of images found: {len(files)}')
 
 
-if args['command'] == 'get_info':
-	files = os.listdir(args['directory'])
-
-	image_count_by_dimensions = {}	
+if args['info']:
+	image_count_by_dimensions = {}
 	image_count_by_height = {}
 	image_count_by_width = {}
 	image_count_by_channels = {}
 
 	for index, file in enumerate(files):
 
-		if index > 50:  # batch size for testing
+		if index > 10:  # batch size for testing
+			cv2.imshow("im",im)
+			cv2.waitKey(5000)  
+			cv2.destroyAllWindows()  
 			break
 
 		im = cv2.imread(args["directory"] + file)
@@ -84,7 +91,7 @@ if args['command'] == 'get_info':
 	width_values = image_count_by_sorted_width.values()
 	height_values = image_count_by_sorted_height.values()
 
-	fig = plt.figure(figsize=(12,8))
+	fig = plt.figure(figsize = (12.8, 7.2))
 	fig.suptitle(f'Image Distribution by Resolution'
 				+f'\nDirectory: {args["directory"]}'
 				+f'\nNumber of Images: {len(files)}')
@@ -92,24 +99,39 @@ if args['command'] == 'get_info':
 	ax1 = fig.add_subplot(211)
 	ax1.set_ylabel('Files per Pixel Width')
 	ax1.set_xticks(np.linspace(0, len(width_keys)-1, 10))
-	ax1.bar(width_keys, width_values, color='seagreen')
+	ax1.bar(width_keys, width_values, color = 'seagreen')
 	
 	ax2 = fig.add_subplot(212)	
 	ax2.set_ylabel('Files per Pixel Height')
 	ax2.set_xticks(np.linspace(0, len(height_keys)-1, 10))
-	ax2.bar(height_keys, height_values, color='steelblue')
+	ax2.bar(height_keys, height_values, color = 'steelblue')
 	
 	plt.savefig('plots/image_distribution_by_resolution_'+ f'{args["directory"].replace("/","_")[:-1]}' + '.png')
 	plt.show()
 
 
-if args['command'] == 'find_duplicates':
-	print(f'finding duplicates')
+if args['delete_duplicates']:
+
+	for index, file in enumerate(files):
+		
+		im = cv2.imread(args["directory"] + file)
+		
+		gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+
+		hsh = cv2.img_hash.BlockMeanHash_create()
+		hsh.compute(gray)
+		print(f'hash: {hsh}')
+
+		if index > 10:  # batch size for testing
+			cv2.imshow("gray",gray)
+			cv2.waitKey(5000)  
+			cv2.destroyAllWindows()
+			break
 
 
 
-if args['command'] == 'resize256':
-	print(f'resize256')
+if args['resize256x256']:
+	print(f'resize256x256')
 # resize
 
 # crop to multiple of 256
