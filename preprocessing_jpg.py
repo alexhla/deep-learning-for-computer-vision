@@ -10,6 +10,7 @@ import cv2
 
 # Instantiate the argument parser object
 ap = argparse.ArgumentParser()
+
 # Add the arguments to the parser
 ap.add_argument('-d', '--directory', nargs=1, metavar=('DIRECTORY'), required=True, help='path to directory of images (required)')
 ap.add_argument('-di', '--directory_info', action='store_true', help='get info on images in directory')
@@ -17,17 +18,20 @@ ap.add_argument('-fd', '--find_duplicates', action='store_true', help='find dupl
 
 ap.add_argument('-i', '--image_info', nargs=1, metavar=('INDEX'), help='get info on image at given index')
 
-ap.add_argument('-r', '--resize_image', nargs=2, metavar=('INDEX', 'PIXEL_MAX'),
-	help='resize image at the given INDEX to the specified PIXEL_MAX; maintaining aspect ratio')
+ap.add_argument('-r', '--resize_image', nargs=2, metavar=('INDEX', 'MAX'),
+	help='resize image at the given INDEX to the specified pixel MAX; maintaining aspect ratio')
 
-ap.add_argument('-rall', '--resize_all_images_in_directory', nargs=1, metavar=('PIXEL_MAX'),
-	help='resize all images in the given directory to the specified PIXEL_MAX; maintaining aspect ratios')
+ap.add_argument('-rall', '--resize_all_images_in_directory', nargs=1, metavar=('MAX'),
+	help='resize all images in the given directory to the specified pixel MAX; maintaining aspect ratios')
 
-ap.add_argument('-stretch', '--stretch_image', nargs=3, metavar=('INDEX','PIXEL_WIDTH','PIXEL_HEIGHT'),
+ap.add_argument('-stretch', '--stretch_image', nargs=3, metavar=('INDEX','HEIGHT','WIDTH'),
 	help='stretch image at the given index to the specified dimensions; disregarding aspect ratio')
 
-ap.add_argument('-pad', '--pad_image', nargs=4, metavar=('INDEX','FILL_TYPE','PIXEL_WIDTH','PIXEL_HEIGHT'),
-	help='pad image at INDEX with FILL_TYPE to meet the PIXEL_WIDTH and PIXEL_HEIGHT dimensions; maintaining aspect ratio')
+ap.add_argument('-pad', '--pad_image', nargs=4, metavar=('INDEX','FILL','HEIGHT','WIDTH'),
+	help='pad image at INDEX with FILL (white | black | reflect) to meet the specified WIDTH and HEIGHT pixel dimensions; maintaining aspect ratio')
+
+ap.add_argument('-padall', '--pad_all_images_in_directory', nargs=3, metavar=('FILL','HEIGHT','WIDTH'),
+	help='pad all images in the given directory with FILL (white | black | reflect) to meet the specified WIDTH and HEIGHT pixel dimensions; maintaining aspect ratio')
 
 ap.add_argument('-s', '--show_image', nargs=1, metavar=('INDEX'), help='show the image at INDEX`')
 ap.add_argument('-sbgr', '--show_bgr', nargs=1, metavar=('INDEX'), help='show bgr channels of the image at INDEX')
@@ -43,23 +47,73 @@ files = os.listdir(files_path)
 print(f'\n{len(files)} images found in {files_path}')
 # print(f'argparse arguments: {args}')
 
+if args['pad_all_images_in_directory']:
+	fill_type = args['pad_all_images_in_directory'][0]
+	desired_height = int(args['pad_all_images_in_directory'][1])
+	desired_width = int(args['pad_all_images_in_directory'][2])
+
+	for index, filename in enumerate(files):
+		print(f'\nPadding image at index {index} with fill type ({fill_type}) to pixel dimensions ({desired_width}, {desired_height})')
+
+		im = cv2.imread(args['directory'][0] + filename)
+		height = im.shape[0]
+		width = im.shape[1]
+		print(f'\nShape of image is {im.shape}')
+
+		# calculate pixel paddings for each side of the image
+		top = bottom = left = right = 0
+		if height <= desired_height:
+			top = bottom = (desired_height - height) // 2
+		if width <= desired_width:
+			left = right = (desired_width - width) // 2
+
+		# add pixels lost during integer division with odd numbers
+		if desired_height != top + height + bottom:
+			top += (desired_height - (top + height + bottom))
+		if desired_width != left + width + right:
+			left += (desired_width - (left + width + right))
+
+		print(f'\nPadding pixel widths are as follows top:{top}, bottom:{bottom}, left:{left}, right:{right}')
+		im_padded = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_REFLECT, 0)
+
+		print(f'\nShape of padded image is {im_padded.shape}')
+		print(f'\nSaving {filename} to current directory')
+		cv2.imwrite('256x256/' + filename, im_padded)
+
+
 if args['pad_image']:
 	index = args['pad_image'][0]
-	desired_size = args['pad_image'][1]
-	print(f'resizing image at index {index} to long side pixel dimensions {desired_size} with padding on short side')
-	
+	fill_type = args['pad_image'][1]
+	desired_height = int(args['pad_image'][2])
+	desired_width = int(args['pad_image'][3])
 	filename = files[int(index)]
-	im = cv2.imread(args['directory'][0] + filename)
-	old_size = im.shape[:2] # old_size is in (height, width) format
-	ratio = float(desired_size)/max(old_size)
-	new_size = tuple([int(x*ratio) for x in old_size])
-	
-	print(f'resizing to new pixel dimensions: {new_size}')
-	im = cv2.resize(im, (new_size[1], new_size[0]))
+	new_filename = 'padded_' + str(desired_height) + 'x' + str(desired_width)  + '_' +  filename
+	print(f'\nPadding image at index {index} with fill type ({fill_type}) to pixel dimensions ({desired_width}, {desired_height})')
 
-	cv2.imshow('', im)
-	cv2.waitKey(5000)
-	cv2.destroyAllWindows()
+	im = cv2.imread(args['directory'][0] + filename)
+	height = im.shape[0]
+	width = im.shape[1]
+	print(f'\nShape of image is {im.shape}')
+
+	# calculate pixel paddings for each side of the image
+	top = bottom = left = right = 0
+	if height <= desired_height:
+		top = bottom = (desired_height - height) // 2
+	if width <= desired_width:
+		left = right = (desired_width - width) // 2
+
+	# add pixels lost during integer division with odd numbers
+	if desired_height != top + height + bottom:
+		top += (desired_height - (top + height + bottom))
+	if desired_width != left + width + right:
+		left += (desired_width - (left + width + right))
+
+	print(f'\nPadding pixel widths are as follows top:{top}, bottom:{bottom}, left:{left}, right:{right}')
+	im_padded = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_REFLECT, 0)
+
+	print(f'\nShape of padded image is {im_padded.shape}')
+	print(f'\nSaving {new_filename} to current directory')
+	cv2.imwrite(new_filename, im_padded)
 
 
 if args['resize_image']:
@@ -92,7 +146,7 @@ if args['resize_all_images_in_directory']:
 		print(f'\nResizing to new pixel dimensions: {new_size}')
 		im = cv2.resize(im, (new_size[1], new_size[0]))
 		print(f'\nSaving image to 256px/{filename}')
-		cv2.imwrite('256px/' + filename, im)
+		cv2.imwrite('256/' + filename, im)
 
 
 if args['image_info']:
@@ -118,7 +172,7 @@ if args['add_images']:
 	im2 = cv2.imread(args['directory'][0] + files[index2])
 	h = min(im1.shape[0], im2.shape[0])
 	w =  min(im1.shape[1], im2.shape[1])
-	im1_cropped = im1[0:h, 0:w]  # crop to match image dimensions, preserving aspect ratio
+	im1_cropped = im1[0:h, 0:w]  # crop to match image dimensions, preserving aspect ratio but losing content
 	im2_cropped = im2[0:h, 0:w]
 	im_sum = cv2.add(im1_cropped, im2_cropped)
 	cv2.imshow('', im_sum)
@@ -172,11 +226,11 @@ if args['directory_info']:
 
 	for index, filename in enumerate(files):
 
-		if index > 10:  # batch size for testing
-			cv2.imshow("im",im)
-			cv2.waitKey(5000)  
-			cv2.destroyAllWindows()  
-			break
+		# if index > 10:  # batch size for testing
+		# 	cv2.imshow("im",im)
+		# 	cv2.waitKey(5000)  
+		# 	cv2.destroyAllWindows()  
+		# 	break
 
 		im = cv2.imread(args["directory"][0] + filename)
 
