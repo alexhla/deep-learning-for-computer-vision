@@ -1,4 +1,4 @@
-# Dependency Installation (Linux):
+# Install Dependencies (Linux):
 # $ pip3 install argparse numpy matplotlib opencv-python opencv-contrib-python
 
 import os
