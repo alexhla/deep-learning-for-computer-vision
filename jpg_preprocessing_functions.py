@@ -42,20 +42,21 @@ ap.add_argument('-add', '--add_images', nargs=2, metavar=('INDEX1','INDEX2'),
 
 
 args = vars(ap.parse_args())
-files_path = args['directory'][0]
-files = os.listdir(files_path)
-print(f'\n{len(files)} images found in {files_path}')
-# print(f'argparse arguments: {args}')
+folder_path = args['directory'][0]
+files = os.listdir(folder_path)
+print(f'argparse arguments: {args}')
+print(f'\n{len(files)} images found in {folder_path}')
+
 
 if args['pad_all_images_in_directory']:
 	fill_type = args['pad_all_images_in_directory'][0]
 	desired_height = int(args['pad_all_images_in_directory'][1])
 	desired_width = int(args['pad_all_images_in_directory'][2])
 
-	for index, filename in enumerate(files):
+	for index, filename in enumerate(os.listdir(folder_path)):
 		print(f'\nPadding image at index {index} with fill type ({fill_type}) to pixel dimensions ({desired_width}, {desired_height})')
 
-		im = cv2.imread(args['directory'][0] + filename)
+		im = cv2.imread(os.path.join(folder_path, filename))
 		height = im.shape[0]
 		width = im.shape[1]
 		print(f'\nShape of image is {im.shape}')
@@ -78,7 +79,13 @@ if args['pad_all_images_in_directory']:
 
 		print(f'\nShape of padded image is {im_padded.shape}')
 		print(f'\nSaving {filename} to current directory')
-		cv2.imwrite('256x256/' + filename, im_padded)
+
+		folder_name = str(desired_height) + 'x' + str(desired_width)
+
+		if not os.path.isdir(folder_name):
+			os.mkdir(folder_name)
+
+		cv2.imwrite(os.path.join(folder_name, filename), im_padded)
 
 
 if args['pad_image']:
@@ -90,7 +97,7 @@ if args['pad_image']:
 	new_filename = 'padded_' + str(desired_height) + 'x' + str(desired_width)  + '_' +  filename
 	print(f'\nPadding image at index {index} with fill type ({fill_type}) to pixel dimensions ({desired_width}, {desired_height})')
 
-	im = cv2.imread(args['directory'][0] + filename)
+	im = cv2.imread(os.path.join(folder_path, filename))
 	height = im.shape[0]
 	width = im.shape[1]
 	print(f'\nShape of image is {im.shape}')
@@ -123,7 +130,7 @@ if args['resize_image']:
 	new_filename = 'resize_' + str(pixel_max) + '_' +filename
 	
 	print(f'\nImage {filename} at index {index} to be resized with pixel maximum {pixel_max}')
-	im = cv2.imread(args['directory'][0] + filename)
+	im = cv2.imread(os.path.join(folder_path, filename))
 	old_size = im.shape[:2] # old_size is in (height, width) format
 	ratio = float(pixel_max)/max(old_size)
 	new_size = tuple([int(x*ratio) for x in old_size])
@@ -138,21 +145,24 @@ if args['resize_all_images_in_directory']:
 	pixel_max = args['resize_all_images_in_directory'][0]
 	for index, filename in enumerate(files):
 		print(f'Index {index} points to {filename}')
-		im = cv2.imread(args['directory'][0] + filename)
+		im = cv2.imread(os.path.join(folder_path, filename))
 		old_size = im.shape[:2] # old_size is in (height, width) format
 		ratio = float(pixel_max)/max(old_size)
 		new_size = tuple([int(x*ratio) for x in old_size])
 		
 		print(f'\nResizing to new pixel dimensions: {new_size}')
 		im = cv2.resize(im, (new_size[1], new_size[0]))
-		print(f'\nSaving image to 256px/{filename}')
-		cv2.imwrite('256/' + filename, im)
+		print(f'\nSaving image to {pixel_max}/{filename}')
 
+		if not os.path.isdir(pixel_max):
+			os.mkdir(pixel_max)
+
+		cv2.imwrite(os.path.join(pixel_max, filename), im)
 
 if args['image_info']:
 	index = args['image_info'][0]
 	filename = files[int(index)]
-	im = cv2.imread(args['directory'][0] + filename)
+	im = cv2.imread(os.path.join(folder_path, filename))
 	print(f'\nFile: {filename} {type(im)}')
 	print(f'Image dtype: {im.dtype}')
 	print(f'Image size (pixels): {im.size}')	
@@ -168,8 +178,8 @@ if args['image_info']:
 if args['add_images']:
 	index1 = int(args['add_images'][0])
 	index2 = int(args['add_images'][1])
-	im1 = cv2.imread(args['directory'][0] + files[index1])
-	im2 = cv2.imread(args['directory'][0] + files[index2])
+	im1 = cv2.imread(os.path.join(folder_path, files[index1]))
+	im2 = cv2.imread(os.path.join(folder_path, files[index2]))
 	h = min(im1.shape[0], im2.shape[0])
 	w =  min(im1.shape[1], im2.shape[1])
 	im1_cropped = im1[0:h, 0:w]  # crop to match image dimensions, preserving aspect ratio but losing content
@@ -182,7 +192,7 @@ if args['add_images']:
 
 if args['show_image']:
 	index = int(args['show_image'][0])
-	im = cv2.imread(args['directory'][0] + files[index])
+	im = cv2.imread(os.path.join(folder_path, files[index]))
 	cv2.imshow('', im)
 	cv2.waitKey(5000)
 	cv2.destroyAllWindows()
@@ -190,7 +200,7 @@ if args['show_image']:
 
 if args['show_bgr']:
 	index = int(args['show_bgr'][0])
-	im = cv2.imread(args['directory'][0] + files[index])
+	im = cv2.imread(os.path.join(folder_path, files[index]))
 	b,g,r = cv2.split(im)
 	z = np.zeros(b.shape, dtype=np.uint8)
 	b = cv2.merge((b, g, z))
@@ -205,7 +215,7 @@ if args['show_bgr']:
 
 if args['show_cym']:
 	index = int(args['show_cym'][0])
-	im = cv2.imread(args['directory'][0] + files[index])
+	im = cv2.imread(os.path.join(folder_path, files[index]))
 	b,g,r = cv2.split(im)
 	z = np.zeros(b.shape, dtype=np.uint8)
 	bg = cv2.merge((b, g, z))
@@ -232,7 +242,7 @@ if args['directory_info']:
 		# 	cv2.destroyAllWindows()  
 		# 	break
 
-		im = cv2.imread(args["directory"][0] + filename)
+		im = cv2.imread(os.path.join(folder_path, files[index]))
 
 		height = im.shape[0]
 		width = im.shape[1]
@@ -307,9 +317,9 @@ if args['directory_info']:
 
 
 if args['find_duplicates']:
-	for index, file in enumerate(files):
+	for index, filename in enumerate(files):
 		
-		im = cv2.imread(args["directory"][0] + file)
+		im = cv2.imread(os.path.join(folder_path, filename))
 		
 		gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 
