@@ -3,7 +3,6 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 
-
 # Generate The Dataset
 
 image_size = (256, 256)
@@ -46,6 +45,8 @@ data_augmentation = keras.Sequential(
 	]
 )
 
+
+# Visulalize Augmentation Data
 
 # plt.figure(figsize=(10, 10))
 # for images, _ in train_ds.take(1):
@@ -114,12 +115,14 @@ def make_model(input_shape, num_classes):
 
 model = make_model(input_shape=image_size + (3,), num_classes=2)
 # keras.utils.plot_model(model, show_shapes=True)
+model.summary()
+
 
 
 
 ## Train The Model
 
-epochs = 50
+epochs = 1
 
 callbacks = [
 	keras.callbacks.ModelCheckpoint("save_at_{epoch}.h5"),
@@ -132,3 +135,7 @@ model.compile(
 model.fit(
 	train_ds, epochs=epochs, callbacks=callbacks, validation_data=val_ds,
 )
+
+
+print(f'saving model....')
+model.save('paintings_vs_drawings_classification_model')
