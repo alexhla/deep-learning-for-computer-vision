@@ -48,6 +48,37 @@ print(f'argparse arguments: {args}')
 print(f'\n{len(files)} images found in {folder_path}')
 
 
+if args['find_duplicates']:
+	hashDict = {}
+	hashSize = 8
+	for index, filename in enumerate(files):
+
+		im = cv2.imread(os.path.join(folder_path, filename))  # read file
+		gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)  # convert to gray
+		resized = cv2.resize(im, (hashSize + 1, hashSize))  # resize to 9x8 pixels
+		diff = resized[:, 1:] > resized[:, :-1]
+		im_hash =  sum([2 ** i for (i, v) in enumerate(diff.flatten()) if v])
+		print(im_hash)
+
+		if im_hash in hashDict:
+			hashDict[im_hash] += 1
+		else:
+			hashDict[im_hash] = 1
+
+	hashDict_sorted = dict(sorted(hashDict.items()))
+	print(f'\nImage Count by Hash Sorted: {hashDict_sorted}')
+
+
+		# if index > 10:  # batch size for testing
+		# 	# cv2.imshow("gray",gray)
+		# 	# cv2.waitKey(5000)  
+		# 	# cv2.destroyAllWindows()
+		# 	break
+
+
+
+
+
 if args['pad_all_images_in_directory']:
 	fill_type = args['pad_all_images_in_directory'][0]
 	desired_height = int(args['pad_all_images_in_directory'][1])
@@ -314,21 +345,3 @@ if args['directory_info']:
 	
 	plt.savefig('plots/image_distribution_by_resolution_'+ f'{args["directory"][0].replace("/","_")[:-1]}' + '.png')
 	plt.show()
-
-
-if args['find_duplicates']:
-	for index, filename in enumerate(files):
-		
-		im = cv2.imread(os.path.join(folder_path, filename))
-		
-		gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-
-		hsh = cv2.img_hash.BlockMeanHash_create()
-		hsh.compute(gray)
-		print(f'hash: {hsh}')
-
-		if index > 10:  # batch size for testing
-			cv2.imshow("gray",gray)
-			cv2.waitKey(5000)  
-			cv2.destroyAllWindows()
-			break
