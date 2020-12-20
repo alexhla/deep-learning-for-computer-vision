@@ -4,9 +4,9 @@ from tensorflow import keras
 from tensorflow.keras.applications import vgg19
 import cv2
 
-base_image_path = keras.utils.get_file("paris.jpg", "https://i.imgur.com/F28w3Ac.jpg")
-style_reference_image_path = keras.utils.get_file("starry_night.jpg", "https://i.imgur.com/9ooB60I.jpg")
 
+base_image_path =  'img/family_portraits/stock_family_portraits/People Standing in Front of Wood Pile.jpg'
+style_reference_image_path = 'img/family_portraits/styles/post_impressionist_van_gogh_2.jpg'
 
 im = cv2.imread(base_image_path)
 cv2.imshow('', im)
@@ -168,21 +168,21 @@ base_image = preprocess_image(base_image_path)
 style_reference_image = preprocess_image(style_reference_image_path)
 combination_image = tf.Variable(preprocess_image(base_image_path))
 
-iterations = 1
+iterations = 10
 for i in range(1, iterations + 1):    
     print(f'Computing Iteration: {i}')
     loss, grads = compute_loss_and_grads(
         combination_image, base_image, style_reference_image
     )
     optimizer.apply_gradients([(grads, combination_image)])
-    if i % 1 == 0:
+    if i % 10 == 0:
         print("Iteration %d: loss=%.2f" % (i, loss))
         img = deprocess_image(combination_image.numpy())
         fname = result_prefix + "_at_iteration_%d.png" % i
         keras.preprocessing.image.save_img(fname, img)
 
 
-im = cv2.imread(result_prefix + "_at_iteration_1.png")
-cv2.imshow('', im)
-cv2.waitKey(3000)
-cv2.destroyAllWindows()
+# im = cv2.imread(result_prefix + "_at_iteration_10.png")
+# cv2.imshow('', im)
+# cv2.waitKey(3000)
+# cv2.destroyAllWindows()
