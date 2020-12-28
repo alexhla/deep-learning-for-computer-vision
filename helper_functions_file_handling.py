@@ -12,7 +12,7 @@ for folder in os.listdir(SOURCE_DIR_PATH):
 
 	for file in files:
 
-		if file[0:1].isdigit():
+		if len(file) > 20:
 
 			print(f'{file}')
 
