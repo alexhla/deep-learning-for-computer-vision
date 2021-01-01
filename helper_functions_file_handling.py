@@ -1,7 +1,7 @@
 import os
 
-SOURCE_DIR_PATH = '../neural-style-tf-master/image_output/'
-NEW_DIR_PATH = '../styled_photos/'
+SOURCE_DIR_PATH = 'lib/neural-style-tf-master/image_output/'
+NEW_DIR_PATH = 'img/etsy/styled_photos/'
 
 
 ### MOVE Files

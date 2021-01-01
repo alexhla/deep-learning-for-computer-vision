@@ -17,7 +17,7 @@ ap.add_argument('-di', '--directory_info', action='store_true', help='get info o
 ap.add_argument('-fd', '--find_duplicates', action='store_true', help='find duplicate images in directory')
 
 ap.add_argument('-i', '--image_info', nargs=1, metavar=('INDEX'), help='get info on image at given index')
-ap.add_argument('-b', '--add_border', nargs=3, metavar=('INDEX', 'BORDER_SIZE', 'BORDER_COLOR'),
+ap.add_argument('-b', '--add_border', nargs=3, metavar=('FILENAME', 'BORDER_SIZE', 'BORDER_COLOR'),
 	help='add border to image at the given INDEX with the specified BORDER_SIZE and BORDER_COLOR')
 
 ap.add_argument('-r', '--resize_image', nargs=2, metavar=('INDEX', 'MAX'),
@@ -48,12 +48,22 @@ folder_path = args['directory'][0]
 files = os.listdir(folder_path)
 print(f'argparse arguments: {args}')
 print(f'\n{len(files)} images found in {folder_path}')
+print(f'files are {files}')
 
 if args['add_border']:
-	INDEX = args['add_border'][0]
+	SOURCE_FILENAME = int(args['add_border'][0])
 	BORDER_SIZE = int(args['add_border'][1])
-	BORDER_COLOR = int(args['add_border'][2])
+	BORDER_COLOR = args['add_border'][2]
 
+	NEW_FILENAME = SOURCE_FILENAME[:-4] + '-bordered.jpg'
+	im = cv2.imread(os.path.join(folder_path, SOURCE_FILENAME))
+
+	top = bottom = left = right = BORDER_SIZE
+	border = cv2.copyMakeBorder(im, top=top, bottom=bottom, left=left, right=right,
+								borderType=cv2.BORDER_CONSTANT,
+								value=[255,255,255])
+	
+	cv2.imwrite(os.path.join(folder_path, NEW_FILENAME), border)
 
 
 if args['find_duplicates']:
