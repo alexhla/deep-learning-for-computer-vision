@@ -17,6 +17,8 @@ ap.add_argument('-di', '--directory_info', action='store_true', help='get info o
 ap.add_argument('-fd', '--find_duplicates', action='store_true', help='find duplicate images in directory')
 
 ap.add_argument('-i', '--image_info', nargs=1, metavar=('INDEX'), help='get info on image at given index')
+ap.add_argument('-b', '--add_border', nargs=3, metavar=('INDEX', 'BORDER_SIZE', 'BORDER_COLOR'),
+	help='add border to image at the given INDEX with the specified BORDER_SIZE and BORDER_COLOR')
 
 ap.add_argument('-r', '--resize_image', nargs=2, metavar=('INDEX', 'MAX'),
 	help='resize image at the given INDEX to the specified pixel MAX; maintaining aspect ratio')
@@ -47,6 +49,12 @@ files = os.listdir(folder_path)
 print(f'argparse arguments: {args}')
 print(f'\n{len(files)} images found in {folder_path}')
 
+if args['add_border']:
+	INDEX = args['add_border'][0]
+	BORDER_SIZE = int(args['add_border'][1])
+	BORDER_COLOR = int(args['add_border'][2])
+
+
 
 if args['find_duplicates']:
 	hashDict = {}
@@ -67,16 +75,6 @@ if args['find_duplicates']:
 
 	hashDict_sorted = dict(sorted(hashDict.items()))
 	print(f'\nImage Count by Hash Sorted: {hashDict_sorted}')
-
-
-		# if index > 10:  # batch size for testing
-		# 	# cv2.imshow("gray",gray)
-		# 	# cv2.waitKey(5000)  
-		# 	# cv2.destroyAllWindows()
-		# 	break
-
-
-
 
 
 if args['pad_all_images_in_directory']:
