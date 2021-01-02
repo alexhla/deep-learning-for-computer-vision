@@ -51,7 +51,7 @@ print(f'\n{len(files)} images found in {folder_path}')
 print(f'files are {files}')
 
 if args['add_border']:
-	SOURCE_FILENAME = int(args['add_border'][0])
+	SOURCE_FILENAME = args['add_border'][0]
 	BORDER_SIZE = int(args['add_border'][1])
 	BORDER_COLOR = args['add_border'][2]
 
