@@ -5,17 +5,19 @@ import os
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # for the surface map
 import cv2
 
 # Instantiate the argument parser object
 ap = argparse.ArgumentParser()
 
 # Add the arguments to the parser
-ap.add_argument('-d', '--directory', nargs=1, metavar=('DIRECTORY'), required=True, help='path to directory of images (required)')
+ap.add_argument('-d', '--directory', nargs=1, metavar=('DIRECTORY'), help='path to directory of images (required)')
 ap.add_argument('-di', '--directory_info', action='store_true', help='get info on images in directory')
-ap.add_argument('-fd', '--find_duplicates', action='store_true', help='find duplicate images in directory')
 
+ap.add_argument('-m', '--move_files', nargs=2, metavar=('SOURCE_DIR', 'DESTINATION_DIR'),
+	help='move files from all subdirectories in SOURCE_DIR to DESTINATION_DIR')
+
+ap.add_argument('-fd', '--find_duplicates', action='store_true', help='find duplicate images in directory')
 ap.add_argument('-i', '--image_info', nargs=1, metavar=('INDEX'), help='get info on image at given index')
 ap.add_argument('-b', '--add_border', nargs=3, metavar=('FILENAME', 'BORDER_SIZE', 'BORDER_COLOR'),
 	help='add border to image at the given INDEX with the specified BORDER_SIZE and BORDER_COLOR')
@@ -42,13 +44,34 @@ ap.add_argument('-scym', '--show_cym', nargs=1, metavar=('INDEX'), help='show cy
 ap.add_argument('-add', '--add_images', nargs=2, metavar=('INDEX1','INDEX2'),
 	help='add the images at INDEX1 and INDEX2; equalizing pixel dimensions by cropping the larger image')
 
-
+# parse user arguments
 args = vars(ap.parse_args())
-folder_path = args['directory'][0]
-files = os.listdir(folder_path)
-print(f'argparse arguments: {args}')
-print(f'\n{len(files)} images found in {folder_path}')
-print(f'files are {files}')
+
+
+
+if args['directory']:
+	folder_path = args['directory'][0]
+	files = os.listdir(folder_path)
+	print(f'argparse arguments: {args}')
+	print(f'\n{len(files)} images found in {folder_path}')
+	print(f'files are {files}')
+
+
+
+if args['move_files']:
+	SOURCE_DIR = args['move_files'][0]
+	DESTINATION_DIR = args['move_files'][1]
+	for folder in os.listdir(SOURCE_DIR):
+		files = os.listdir(os.path.join(SOURCE_DIR, folder))
+		for file in files:
+			# optional final condition to move file
+			if len(file) > 20:
+				print(f'\nMoving {file} \nFrom {SOURCE_DIR} \nTo {DESTINATION_DIR}\n')
+				x = os.path.join(SOURCE_DIR, folder, file)
+				y = os.path.join(DESTINATION_DIR, file)
+				os.rename(x, y)
+
+
 
 if args['add_border']:
 	SOURCE_FILENAME = args['add_border'][0]
