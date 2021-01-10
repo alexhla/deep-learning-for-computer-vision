@@ -11,7 +11,7 @@ import cv2
 ap = argparse.ArgumentParser()
 
 # Add the arguments to the parser
-ap.add_argument('-d', '--directory', nargs=1, metavar=('DIRECTORY'), help='path to directory of images (required)')
+ap.add_argument('-d', '--directory', nargs=1, metavar=('DIRECTORY'), help='path to directory of images')
 ap.add_argument('-di', '--directory_info', action='store_true', help='get info on images in directory')
 
 ap.add_argument('-m', '--move_files', nargs=2, metavar=('SOURCE_DIR', 'DESTINATION_DIR'),
@@ -55,7 +55,6 @@ if args['directory']:
 	print(f'argparse arguments: {args}')
 	print(f'\n{len(files)} images found in {folder_path}')
 	print(f'files are {files}')
-
 
 
 if args['move_files']:
